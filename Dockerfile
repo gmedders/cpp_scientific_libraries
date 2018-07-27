@@ -74,7 +74,7 @@ RUN wget http://www.fftw.org/fftw-3.3.8.tar.gz \
 
 
 ## Clean working directory
-#RUN rm -rf CMake
+RUN rm -rf CMake OpenBLAS  armadillo-code fftw-3.3.8 fftw-3.3.8.tar.gz
 
 # Show environments
 RUN echo "--- Build Enviroment ---"
