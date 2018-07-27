@@ -23,7 +23,6 @@ RUN \
 
 RUN apt-get install git -y
 RUN apt-get install cmake -y
-RUN apt-get install libarmadillo-dev libfftw3-dev -y
 
 # Set environment variables.
 ENV HOME /root
