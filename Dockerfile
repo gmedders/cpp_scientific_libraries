@@ -9,7 +9,7 @@ FROM ubuntu:16.04
 
 MAINTAINER gmedders "https://github.com/gmedders"
 
-# Install
+# Install gcc-8 and g++-8
 RUN \
   apt-get update -y &&  \
   apt-get upgrade -y && \
@@ -21,8 +21,8 @@ RUN \
   update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8 && \
   update-alternatives --config gcc
 
+# Install git
 RUN apt-get install git -y
-RUN apt-get install cmake -y
 
 # Set environment variables.
 ENV HOME /root
@@ -33,30 +33,32 @@ WORKDIR /root
 # Define default command.
 CMD ["bash"]
 
-# Update CMake to v3.5.1
+# Dependencies for CMake to use --system-curl
+RUN apt-get install curl libcurl4-openssl-dev zlib1g-dev -y
+
+# Update CMake to v3.11.3 with ssl-enabled curl
 RUN git clone --depth 1 -b v3.11.3 https://github.com/Kitware/CMake.git
 RUN \
   cd CMake && \
-  mkdir build && \
-  cd build && \
-  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr && \
+  ./bootstrap --system-curl && \
   make -j4 && \
   make install && \
   ldconfig && \
-  cd ../.. && \
+  cd .. && \
   cmake --version
 
 # Install armadillo dependencies
 RUN apt-get install gfortran-8 -y
 RUN apt-get install liblapack-dev -y
 
+# Install OpenBLAS (required by armadillo)
 RUN git clone -q --branch=v0.2.20 --depth=1 https://github.com/xianyi/OpenBLAS.git
 RUN cd OpenBLAS && \
     make -j4 && \
-    make install
-RUN ldconfig
-#
-# # Install armadillo
+    make install && \
+    ldconfig
+
+# Install armadillo
 RUN git clone --depth 1 -b 8.400.x https://gitlab.com/conradsnicta/armadillo-code.git && cd armadillo-code \
     && cmake . \
     && make -j4 \
@@ -71,8 +73,7 @@ RUN wget http://www.fftw.org/fftw-3.3.8.tar.gz \
     && make -j4 \
     && make install
 
-
-## Clean working directory
+## Clean build directories
 RUN rm -rf CMake OpenBLAS  armadillo-code fftw-3.3.8 fftw-3.3.8.tar.gz
 
 # Show environments
