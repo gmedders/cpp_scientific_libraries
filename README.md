@@ -1,4 +1,4 @@
 cpp_scientific_libraries
 ========================
 
-This repository will contain a Dockerfile that can be used to build ubuntu-based images containing libraries for scientific computations in c++.
+This repository used to build ubuntu-based Docker images for scientific computation with c++. Pull the images [here](https://hub.docker.com/r/gmedders/cpp_scientific_libraries/).
