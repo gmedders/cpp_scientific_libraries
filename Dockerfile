@@ -34,7 +34,7 @@ WORKDIR /root
 CMD ["bash"]
 
 # Update CMake to v3.5.1
-RUN git clone --depth 1 -b v3.5.1 https://github.com/Kitware/CMake.git
+RUN git clone --depth 1 -b v3.11.3 https://github.com/Kitware/CMake.git
 RUN \
   cd CMake && \
   mkdir build && \
