@@ -17,12 +17,12 @@ RUN \
   apt-get install build-essential software-properties-common -y && \
   add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
   apt-get update -y && \
-  apt-get install gcc-8 g++-8 -y && \
+  apt-get install gcc-8 g++-8 gfortran-8 -y && \
   update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8 && \
   update-alternatives --config gcc
 
-# Install git
-RUN apt-get install git -y
+# Install other dependencies
+RUN apt-get install git wget curl libcurl4-openssl-dev zlib1g-dev liblapack-dev -y
 
 # Set environment variables.
 ENV HOME /root
@@ -33,48 +33,43 @@ WORKDIR /root
 # Define default command.
 CMD ["bash"]
 
-# Dependencies for CMake to use --system-curl
-RUN apt-get install curl libcurl4-openssl-dev zlib1g-dev -y
-
 # Update CMake to v3.11.3 with ssl-enabled curl
-RUN git clone --depth 1 -b v3.11.3 https://github.com/Kitware/CMake.git
-RUN \
-  cd CMake && \
-  ./bootstrap --system-curl && \
-  make -j4 && \
-  make install && \
-  ldconfig && \
-  cd .. && \
-  cmake --version
-
-# Install armadillo dependencies
-RUN apt-get install gfortran-8 -y
-RUN apt-get install liblapack-dev -y
+RUN git clone -q --branch=v3.11.3 --depth=1 https://github.com/Kitware/CMake.git \
+    && cd CMake \
+    && ./bootstrap --system-curl \
+    && make -j4 \
+    && make install \
+    && ldconfig \
+    && cd .. \
+    && rm -rf CMake \
+    && cmake --version
 
 # Install OpenBLAS (required by armadillo)
-RUN git clone -q --branch=v0.2.20 --depth=1 https://github.com/xianyi/OpenBLAS.git
-RUN cd OpenBLAS && \
-    make -j4 && \
-    make install && \
-    ldconfig
+RUN git clone -q --branch=v0.2.20 --depth=1 https://github.com/xianyi/OpenBLAS.git \
+    && cd OpenBLAS \
+    && make -j4 \
+    && make install \
+    && ldconfig \
+    && cd .. \
+    && rm -rf OpenBLAS
 
 # Install armadillo
-RUN git clone --depth 1 -b 8.400.x https://gitlab.com/conradsnicta/armadillo-code.git && cd armadillo-code \
+RUN git clone -q --branch=8.400.x --depth=1 https://gitlab.com/conradsnicta/armadillo-code.git \
+    && cd armadillo-code \
     && cmake . \
     && make -j4 \
-    && make install
+    && make install \
+    && cd .. \
+    && rm -rf armadillo-code
 
 # Install fftw3
-RUN apt-get install wget
 RUN wget http://www.fftw.org/fftw-3.3.8.tar.gz \
     && tar -xf fftw-3.3.8.tar.gz \
     && cd fftw-3.3.8 \
     && ./configure --prefix=/usr --enable-shared=yes \
     && make -j4 \
-    && make install
-
-## Clean build directories
-RUN rm -rf CMake OpenBLAS  armadillo-code fftw-3.3.8 fftw-3.3.8.tar.gz
+    && make install \
+    && rm -rf fftw-3.3.8 fftw-3.3.8.tar.gz
 
 # Show environments
 RUN echo "--- Build Enviroment ---"
