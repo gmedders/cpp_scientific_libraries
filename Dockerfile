@@ -23,7 +23,7 @@ RUN apt-get update --no-install-recommends -y \
     && update-alternatives --config gfortran
 
 # Install other dependencies
-RUN apt-get install git wget curl libcurl4-openssl-dev zlib1g-dev liblapack-dev --no-install-recommends -y
+RUN apt-get install git wget curl libcurl4-openssl-dev zlib1g-dev --no-install-recommends -y
 
 # Set environment variables.
 ENV HOME /root
@@ -45,22 +45,34 @@ RUN git clone -q --branch=v3.11.3 --depth=1 https://github.com/Kitware/CMake.git
     && rm -rf CMake \
     && cmake --version
 
-# Install OpenBLAS (required by armadillo)
+# Install OpenBLAS (required by Lapack and armadillo)
 RUN git clone -q --branch=v0.2.20 --depth=1 https://github.com/xianyi/OpenBLAS.git \
     && cd OpenBLAS \
     && make -j4 \
-    && make install \
+    && make install PREFIX=/usr/local \
     && ldconfig \
     && cd .. \
     && rm -rf OpenBLAS
 
+# Install Current Release of Lapack (required by armadillo)
+RUN git clone https://github.com/Reference-LAPACK/lapack-release.git \
+    && cd lapack-release \
+    && mkdir build && cd build \
+    && cmake -DBLAS_LIBRARIES="-L/usr/local/lib -lopenblas" -DBUILD_SHARED_LIBS=ON .. \
+    && make -j4 \
+    && make install \
+    && ldconfig \
+    && cd ../.. \
+    && rm -rf lapack-release
+
 # Install armadillo
 RUN git clone -q --branch=8.400.x --depth=1 https://gitlab.com/conradsnicta/armadillo-code.git \
     && cd armadillo-code \
-    && cmake . \
+    && mkdir build && cd build \
+    && cmake .. \
     && make -j4 \
     && make install \
-    && cd .. \
+    && cd ../.. \
     && rm -rf armadillo-code
 
 # Install fftw3
