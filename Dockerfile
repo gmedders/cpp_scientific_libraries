@@ -10,19 +10,20 @@ FROM ubuntu:16.04
 MAINTAINER gmedders "https://github.com/gmedders"
 
 # Install gcc-8 and g++-8
-RUN \
-  apt-get update -y &&  \
-  apt-get upgrade -y && \
-  apt-get dist-upgrade -y && \
-  apt-get install build-essential software-properties-common -y && \
-  add-apt-repository ppa:ubuntu-toolchain-r/test -y && \
-  apt-get update -y && \
-  apt-get install gcc-8 g++-8 gfortran-8 -y && \
-  update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8 && \
-  update-alternatives --config gcc
+RUN apt-get update --no-install-recommends -y \
+    && apt-get upgrade --no-install-recommends -y \
+    && apt-get dist-upgrade --no-install-recommends -y \
+    && apt-get install build-essential software-properties-common --no-install-recommends -y \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    && apt-get update --no-install-recommends -y \
+    && apt-get install gcc-8 g++-8 gfortran-8 --no-install-recommends -y \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8 \
+    && update-alternatives --config gcc \
+    && update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-8 60 \
+    && update-alternatives --config gfortran
 
 # Install other dependencies
-RUN apt-get install git wget curl libcurl4-openssl-dev zlib1g-dev liblapack-dev -y
+RUN apt-get install git wget curl libcurl4-openssl-dev zlib1g-dev liblapack-dev --no-install-recommends -y
 
 # Set environment variables.
 ENV HOME /root
@@ -69,6 +70,7 @@ RUN wget http://www.fftw.org/fftw-3.3.8.tar.gz \
     && ./configure --prefix=/usr --enable-shared=yes \
     && make -j4 \
     && make install \
+    && cd .. \
     && rm -rf fftw-3.3.8 fftw-3.3.8.tar.gz
 
 # Show environments
